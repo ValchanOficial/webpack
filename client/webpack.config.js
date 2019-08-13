@@ -2,9 +2,21 @@ const path = require('path'),
       babiliPlugin = require('babili-webpack-plugin'),
       extractTextPlugin = require('extract-text-webpack-plugin'),
       optimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
-      webpack = require('webpack');
+      webpack = require('webpack'),
+      HtmlWebpackPlugin = require('html-webpack-plugin');
 
 let plugins = [];
+
+plugins.push(new HtmlWebpackPlugin({
+    hash: true,
+    minify: {
+        html5: true,
+        collapseWhitespace: true,
+        removeComments: true,
+    },    
+    filename: 'index.html',
+    template: __dirname + '/main.html'
+}));
 
 plugins.push(
     new extractTextPlugin("styles.css")
@@ -17,8 +29,12 @@ plugins.push(
     })
 );
 
+let SERVICE_URL = JSON.stringify('http://localhost:3000'); //endereço de dev
 if(process.env.NODE_ENV == 'production'){
 
+    SERVICE_URL = JSON.stringify('http://endereco-da-api'); //endereço de produção
+
+    plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
     plugins.push(new babiliPlugin());
 
     plugins.push(new optimizeCSSAssetsPlugin({
@@ -32,12 +48,16 @@ if(process.env.NODE_ENV == 'production'){
      }));
 }
 
+plugins.push(new webpack.DefinePlugin({ SERVICE_URL })); 
+
 module.exports = {
-    entry: './app-src/app.js',
+    entry: {
+        app: './app-src/app.js',
+        vendor: ['jquery', 'bootstrap', 'reflect-metadata']
+    },
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist'),
-        publicPath: 'dist'
+        path: path.resolve(__dirname, 'dist')
     },
     module: {
         rules: [
@@ -63,11 +83,23 @@ module.exports = {
                     },
                   },
                 ],
-              }
+            }
         ]
     },
     externals: {
         jquery: 'jQuery'
+    },
+    mode: 'development',
+    optimization: {
+          splitChunks: {
+            cacheGroups: {
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: "vendor",
+                chunks: "all"
+                }
+            }
+        }
     },
     plugins
 }

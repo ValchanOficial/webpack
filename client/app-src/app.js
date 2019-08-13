@@ -1,3 +1,4 @@
+import 'core-js/es7/reflect';
 import { NegociacaoController } from './controllers/NegociacaoController.js';
 import { Negociacao } from './domain/index.js';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -18,5 +19,5 @@ const config = {
     body 
 };
 
-fetch('http://localhost:3000/negociacoes', config)
+fetch(`${SERVICE_URL}/negociacoes`, config)
     .then(() => console.log('Dado enviado com sucesso'));
